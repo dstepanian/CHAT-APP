@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs');
 const User = require("../models/user");
-const generateToken = require("../lib/utils");
+const {generateToken} = require("../lib/utils");
 
 const signup = async (req, res) => {
     try {
@@ -37,27 +37,45 @@ const signup = async (req, res) => {
         }
 
     } catch (e) {
-        console.error(e);
+        console.log(e);
         res.status(400).json({message: "Internal Server Error"});
     }
 }
-
 const login = async (req, res) => {
     try {
-        res.send('helllllllllo')
-        console.log("login")
+        const {email, password} = req.body;
+
+        const user = await User.findOne({email})
+        if (!user) {
+            return res.status(400).json({message: "Invalid credentials"});
+        }
+
+        const isPasswordMatch = await bcrypt.compare(password, user.password);
+        if (!isPasswordMatch) {
+            return res.status(401).json({message: "Invalid credentials"});
+        }
+
+        generateToken(user._id, res);
+
+        res.status(200).json({
+            message: "Authentication successfully",
+            _id: user._id,
+            fullName: user.fullName,
+            email: user.email,
+            profilePic: user.profilePic
+        })
     } catch (e) {
-        res.status(400).send({message: e.message});
-        console.log(e)
+        console.log(e);
+        res.status(400).json({message: "Internal Server Error"});
     }
 }
-
 const logout = async (req, res) => {
     try {
-        console.log("logout")
+        res.cookie("jwt", "", {maxAge:0});
+        res.status(200).json({message: "Logout successfully"});
     } catch (e) {
-        res.status(400).send({message: e.message});
-        console.log(e)
+        console.log(e);
+        res.status(400).json({message: "Internal Server Error"});
     }
 }
 

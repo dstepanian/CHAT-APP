@@ -1,11 +1,12 @@
 const express = require('express')
 const {connectDB} = require('./lib/db')
-const router = express.Router()
+const routes = require('./routes')
 
 const app = express()
 const port = process.env.PORT || 5000
 
 app.use(express.json())
+app.use('/', routes)
 
 connectDB();
 
