@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const User = require("../models/user");
 const {generateToken} = require("../lib/utils");
+const {cloudinary} = require("../lib/cloudinary");
 
 const signup = async (req, res) => {
     try {
@@ -71,7 +72,7 @@ const login = async (req, res) => {
 }
 const logout = async (req, res) => {
     try {
-        res.cookie("jwt", "", {maxAge:0});
+        res.cookie("jwt", "", {maxAge: 0});
         res.status(200).json({message: "Logout successfully"});
     } catch (e) {
         console.log(e);
@@ -79,4 +80,35 @@ const logout = async (req, res) => {
     }
 }
 
-module.exports = {login, logout, signup}
+const updateProfile = async (req, res) => {
+    try {
+        const {profilePicture} = req.body;
+        const userId = req.user._id;
+
+        if (!profilePicture) {
+            return res.status(401).send('Profile picture is missing');
+        }
+
+        const uploadResponse = await cloudinary.uploader.upload(profilePicture);
+        const updatedUser = await User.findByIdAndUpdate(userId, {profilePicture: uploadResponse.secure_url}, {new: True})
+
+        res.status(200).json({updatedUser})
+
+
+    } catch (e) {
+        console.log(e);
+        res.status(400).json({message: "Internal Server Error"});
+    }
+
+}
+
+const checkAuth = (req, res) => {
+    try {
+        res.status(200).json(req.user);
+    } catch (e) {
+        console.log(e)
+        return res.status(500).json({message: "Internal Server Error"});
+    }
+}
+
+module.exports = {login, logout, signup, updateProfile, checkAuth};
