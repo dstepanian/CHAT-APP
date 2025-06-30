@@ -1,5 +1,5 @@
-const auth = require(`./auth`)
-const message = require(`./message`)
+const auth = require('../routes/auth')
+const message = require('../routes/message')
 const {sayHi} = require("../controllers");
 const router = require('express').Router()
 
