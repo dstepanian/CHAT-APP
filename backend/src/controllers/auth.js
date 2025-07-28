@@ -1,7 +1,7 @@
 const bcrypt = require('bcryptjs');
 const User = require("../models/user");
 const {generateToken} = require("../lib/utils");
-const {cloudinary} = require("../lib/cloudinary");
+const cloudinary = require("..//lib/cloudinary");
 
 const signup = async (req, res) => {
     try {
@@ -26,7 +26,7 @@ const signup = async (req, res) => {
         })
 
         if (newUser) {
-            // jwt logics goes here
+            // jwt logics go here
             generateToken(newUser._id, res);
             await newUser.save()
 
@@ -63,7 +63,7 @@ const login = async (req, res) => {
             _id: user._id,
             fullName: user.fullName,
             email: user.email,
-            profilePic: user.profilePic
+            profilePicture: user.profilePicture
         })
     } catch (e) {
         console.log(e);
@@ -86,21 +86,27 @@ const updateProfile = async (req, res) => {
         const userId = req.user._id;
 
         if (!profilePicture) {
-            return res.status(401).send('Profile picture is missing');
+            return res.status(400).json({message: 'Profile picture is missing'});
         }
 
         const uploadResponse = await cloudinary.uploader.upload(profilePicture);
-        const updatedUser = await User.findByIdAndUpdate(userId, {profilePicture: uploadResponse.secure_url}, {new: True})
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            {profilePicture: uploadResponse.secure_url},
+            {new: true}
+        );
 
-        res.status(200).json({updatedUser})
+        if (!updatedUser) {
+            return res.status(404).json({message: 'User not found'});
+        }
 
+        return res.status(200).json({updatedUser});
 
     } catch (e) {
-        console.log(e);
-        res.status(400).json({message: "Internal Server Error"});
+        console.log(e)
+        return res.status(500).json({message: "Internal Server Error"});
     }
-
-}
+};
 
 const checkAuth = (req, res) => {
     try {

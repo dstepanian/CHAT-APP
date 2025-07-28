@@ -1,5 +1,7 @@
 const jwt = require('jsonwebtoken')
 const User = require('../models/user')
+const { v2: cloudinary } = require('cloudinary');
+
 
 const protectRoute = async (req, res, next) => {
     try {
